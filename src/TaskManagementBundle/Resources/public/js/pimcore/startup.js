@@ -176,7 +176,7 @@ if (perspectiveCfg.inToolbar("extras")) {
             cls: 'main-toolbar',
             items: [
                 {
-                    text: t('restore_selected'),
+                    text: t('Add Task'),
                     handler: "",//this.restoreSelected.bind(this),
                     iconCls: "pimcore_icon_restore",
                     id: "pimcore_recyclebin_button_restore",
