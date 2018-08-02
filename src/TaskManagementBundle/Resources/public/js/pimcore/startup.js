@@ -5,13 +5,18 @@ pimcore.plugin.TaskManagementBundle = Class.create(pimcore.plugin.admin, {
         return "pimcore.plugin.TaskManagementBundle";
     },
 
-    initialize: function () {
-        //alert("____dd");
+    initialize: function (config) {
+        this.config = {
+            searchParams: {},
+            //refreshInterval: 5
+        };
+
+        Ext.apply(this.config, config);
+        this.searchParams = this.config.searchParams;
         pimcore.plugin.broker.registerPlugin(this);
     },
 
     pimcoreReady: function (params, broker) {
-        //alert("____sssdd");
        //alert("TaskManagementBundle ready!");
        this.addMenuIntools(this);
     },
@@ -81,25 +86,180 @@ if (perspectiveCfg.inToolbar("extras")) {
     },*/
     
     showTab: function() {
+         this.fromDate = new Ext.form.DateField({
+                name: 'start_date',
+                width: 120,
+                xtype: 'datefield'
+            });
+
+            this.fromTime = new Ext.form.TimeField({
+                name: 'start_time',
+                width: 80,
+                xtype: 'timefield'
+            });
+
+            this.toDate = new Ext.form.DateField({
+                name: 'due_date',
+                width: 120,
+                xtype: 'datefield'
+            });
+
+            this.toTime = new Ext.form.TimeField({
+                name: 'due_time',
+                width: 80,
+                xtype: 'timefield'
+            });
+
+            var formSearch = this.find.bind(this);
+            this.searchpanel = new Ext.FormPanel({
+                region: "east",
+                title: t("Task Search Form"),
+                width: 350,
+                height: 500,
+                border: false,
+                autoScroll: true,
+                referenceHolder: true,
+                margin:20,
+                collapsible: true,
+                collapseDirection: 'left',
+                bodyPadding: 3,
+                defaultButton: 'task_search_button',
+                buttons: [{
+                    text: t("Reset Search"),
+                    handler: this.clearValues.bind(this),
+                    iconCls: "pimcore_icon_stop"
+                },{
+                    reference: 'log_search_button',
+                    text: t("Search"),
+                    handler: this.find.bind(this),
+                    iconCls: "pimcore_icon_search"
+                }],
+                listeners: {
+                    afterRender: function(formCmp) {
+                        this.keyNav = Ext.create('Ext.util.KeyNav', formCmp.el, {
+                            enter: formSearch,
+                            scope: this
+                        });
+                    }
+                },
+                items: [ {
+                    xtype:'fieldset',
+                    autoHeight:true,
+                    labelWidth: 120,
+                    items :[
+                        {
+                            xtype:'textfield',
+                            name: 'subject',
+                            fieldLabel: t('Subject'),
+                            width: 320,
+                            listWidth: 150
+                        },{
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            fieldLabel: t('Start Date'),
+                            combineErrors: true,
+                            name: 'start_date',
+                            items: [this.fromDate, this.fromTime]
+                        },{
+                            xtype: 'fieldcontainer',
+                            layout: 'hbox',
+                            fieldLabel: t('Due Date'),
+                            combineErrors: true,
+                            name: 'due_date',
+                            items: [this.toDate, this.toTime]
+                        },{
+                            xtype:'combo',
+                            name: 'priority',
+                            fieldLabel: t('Priority'),
+                            width: 320,
+                            listWidth: 150,
+                            mode: 'local',
+                            typeAhead:true,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            store: this.priorityStore,
+                            displayField: 'value',
+                            valueField: 'key'
+                        },{
+                            xtype:'combo',
+                            name: 'staus',
+                            fieldLabel: t('Staus'),
+                            width: 320,
+                            listWidth: 150,
+                            mode: 'local',
+                            typeAhead:true,
+                            forceSelection: true,
+                            triggerAction: 'all',
+                            store: this.componentStore,
+                            displayField: 'value',
+                            valueField: 'key'
+                        }]
+                }]});
        TaskManagementBundlePlugin.panel = new Ext.Panel({
             id:         "task_manager_panel",
             title:      "Task Manager",
             border:     false,
             layout:     "fit",
             closable:   true,
-            items:      [TaskManagementBundlePlugin.getGrid()]
+           // items:      [this.getGrid()]
         });
-
+var layout = new Ext.Panel({
+                border: false,
+                layout: "border",
+                items: [this.searchpanel, this.getGrid() ],
+            });
+TaskManagementBundlePlugin.panel.add(layout);
         var tabPanel = Ext.getCmp("pimcore_panel_tabs");
         tabPanel.add(TaskManagementBundlePlugin.panel);
         tabPanel.setActiveTab(TaskManagementBundlePlugin.panel);
         
         pimcore.layout.refresh();
+        /* try {
+            pimcore.globalmanager.get("pimcore_task_management").activate();
+        }
+        catch (e) {
+            var taskManager = new pimcore.plugin.taskmanager();
+            pimcore.globalmanager.add("pimcore_task_management", taskManager.getTabPanel());
+        }*/
     },
+    clearValues: function(){
+        this.searchpanel.getForm().reset();
+
+        this.searchParams.fromDate = null;
+        this.searchParams.fromTime = null;
+        this.searchParams.toDate = null;
+        this.searchParams.toTime = null;
+        this.searchParams.priority = null;
+        this.searchParams.status = null;
+        this.searchParams.subject = null;
+        this.store.baseParams = this.searchParams;
+        this.store.reload({
+            params:this.searchParams
+        });
+    },
+
+
+    find: function() {
+        var formValues = this.searchpanel.getForm().getFieldValues();
+
+        this.searchParams.fromDate = this.fromDate.getValue();
+        this.searchParams.fromTime = this.fromTime.getValue();
+        this.searchParams.toDate = this.toDate.getValue();
+        this.searchParams.toTime = this.toTime.getValue();
+        this.searchParams.priority = formValues.priority;
+        this.searchParams.status = formValues.status;
+        this.searchParams.subject = formValues.subject;
+       
+
+        var proxy = this.store.getProxy();
+        proxy.extraParams = this.searchParams;
+        this.pagingToolbar.moveFirst();
+    },
+    
     getGrid: function () {
         var ryc = pimcore.globalmanager.get("layout_toolbar");
         var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
-        this.store = pimcore.helpers.grid.buildDefaultStore(
+       /* this.store = pimcore.helpers.grid.buildDefaultStore(
             '/admin/recyclebin/list?',
             [
                 {name: 'id'},
@@ -119,7 +279,7 @@ if (perspectiveCfg.inToolbar("extras")) {
                 Ext.getCmp("pimcore_recyclebin_button_flush").enable();
             }
         }.bind(this));
-
+*/
 
         this.filterField = new Ext.form.TextField({
             xtype: "textfield",
@@ -142,15 +302,18 @@ if (perspectiveCfg.inToolbar("extras")) {
 
         var typesColumns = [
             {
-                text: t("type"), width: 50, sortable: true, dataIndex: 'subtype', renderer: function (d) {
+                text: t("subject"), width: 50, sortable: true, dataIndex: 'subject', renderer: function (d) {
                     return '<img src="/pimcore/static6/img/flat-color-icons/' + d + '.svg" style="height: 16px" />';
                 }
             },
-            {text: t("path"), flex: 200, sortable: true, dataIndex: 'path', filter: 'string'},
-            {text: t("amount"), flex: 60, sortable: true, dataIndex: 'amount'},
-            {text: t("deletedby"), flex: 80, sortable: true, dataIndex: 'deletedby', filter: 'string'},
+            {text: t("description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
+            {text: t("priority"), flex: 60, sortable: true, dataIndex: 'priority'},
+            {text: t("status"), flex: 60, sortable: true, dataIndex: 'status'},
+            {text: t("start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
+            {text: t("completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
+            {text: t("associated_element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
             {
-                text: t("date"), flex: 140, sortable: true, dataIndex: 'date',
+                text: t("due date"), flex: 140, sortable: true, dataIndex: 'due_date',
                 renderer: function (d) {
                     var date = new Date(d * 1000);
                     return Ext.Date.format(date, "Y-m-d H:i:s");
@@ -179,17 +342,17 @@ if (perspectiveCfg.inToolbar("extras")) {
                     text: t('Add Task'),
                     handler: "",//this.restoreSelected.bind(this),
                     iconCls: "pimcore_icon_restore",
-                    id: "pimcore_recyclebin_button_restore",
+                    id: "pimcore_button_add",
                     disabled: true
                 }, '-', {
                     text: t('delete_selected'),
                     handler: "",//this.deleteSelected.bind(this),
                     iconCls: "pimcore_icon_delete",
-                    id: "pimcore_recyclebin_button_delete",
+                    id: "pimcore_button_delete",
                     disabled: true
                 }, "-",
                 {
-                    text: t('flush_recyclebin'),
+                    text: t('Archive'),
                     handler: "",//this.onFlush.bind(this),
                     iconCls: "pimcore_icon_flush_recyclebin",
                     id: "pimcore_recyclebin_button_flush",
@@ -210,12 +373,16 @@ if (perspectiveCfg.inToolbar("extras")) {
         this.grid = new Ext.grid.GridPanel({
             frame: false,
             autoScroll: true,
-            store: this.store,
+            //store: this.store,
             columnLines: true,
             bbar: this.pagingtoolbar,
             stripeRows: true,
             selModel: this.selectionColumn,
             plugins: ['pimcore.gridfilters'],
+            title: t("Task Manager"),
+            trackMouseOver:false,
+            disableSelection:true,
+            region: "center",
             columns: typesColumns,
             tbar: toolbar,
             listeners: {
