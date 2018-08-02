@@ -334,16 +334,128 @@ TaskManagementBundlePlugin.panel.add(layout);
                 }]
             }
         ];
+        
+        
+        var AddTaskForm = Ext.create('Ext.form.Panel', {
+            renderTo: document.body,
+            id:'AddTaskFormId',
+            height: 500,
+            width: 500,
+            bodyPadding: 10,
+            defaultType: 'textfield',
+            items: [
+                {
+                    xtype     : 'textareafield',
+                    fieldLabel: 'Description',
+                    name: 'description',
+                    grow      : true,
+                    anchor    : '100%'
+                },
+                {   
+                    xtype: 'datefield',
+                    fieldLabel: 'Due Date',
+                    name: 'due_date'
+                },
+                {   
+                    xtype: 'combo',
+                    fieldLabel: 'Priority',
+                    name: 'priority',
+                    store: [
+			['High', 'High'],
+			['Normal', 'Normal'],
+			['Low', 'Low']
+		    ],
+                    id: 0,
+                    fields: ['value', 'text'],
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                },
+                {   xtype: 'combo',
+                    fieldLabel: 'Status',
+                    name: 'status',
+                    store: [
+			['Not started', 'Not started'],
+			['In Progress', 'In Progress'],
+			['Completed', 'Completed']
+		    ],
+                    id: 0,
+                    fields: ['value', 'text'],
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr',
+                },
+                {
+                    xtype: 'datefield',
+                    fieldLabel: 'Start Date',
+                    name: 'start_date'
+                },
+                {
+                    xtype: 'datefield',
+                    fieldLabel: 'Completion Date',
+                    name: 'completion_date'
+                },
+                {   xtype: 'combo',
+                    fieldLabel: 'Associated Element',
+                    name: 'associated_element',
+                    store: [
+			['Object', 'Object'],
+			['Document', 'Document'],
+			['Asset', 'Asset']
+		    ],
+                    id: 0,
+                    fields: ['value', 'text'],
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'abbr'
+                },
+                
+                {   
+                    xtype: 'textfield',
+                    fieldLabel: 'Subject',
+                    name: 'subject'
+                }
+            ],
+            buttons: [
+                {   id:'saveBtn',
+                    text: 'Save',
+                    handler : function(btn) {
+                        var form = AddTaskForm.getForm();
+                        var domain = 'http://lpim.com/';
+                        form.submit({
+                            method  : 'POST',
+                            url: domain+'task_management',
+                            success : function() {
+                                Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
+                                    form.hide();
+                                });
+                            }
+                        });
+                    }
+                }
+            ]
+        });
 
         var toolbar = Ext.create('Ext.Toolbar', {
             cls: 'main-toolbar',
             items: [
                 {
                     text: t('Add Task'),
-                    handler: "",//this.restoreSelected.bind(this),
+                    handler: function() {
+                        var panelTitle = "Add Task";
+                        var win = new Ext.Window({
+                            title:panelTitle,
+                            width:500,
+                            height:550,
+                            closeAction :'hide',
+                            plain       : true,
+                            items  : [AddTaskForm]
+                        });
+                        win.show();
+                    },
                     iconCls: "pimcore_icon_restore",
                     id: "pimcore_button_add",
-                    disabled: true
+                    disabled: false
                 }, '-', {
                     text: t('delete_selected'),
                     handler: "",//this.deleteSelected.bind(this),
