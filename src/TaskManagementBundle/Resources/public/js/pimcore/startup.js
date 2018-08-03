@@ -366,7 +366,6 @@ TaskManagementBundlePlugin.panel.add(layout);
 			['Normal', 'Normal'],
 			['Low', 'Low']
 		    ],
-                    id: 0,
                     fields: ['value', 'text'],
                     queryMode: 'local',
                     displayField: 'name',
@@ -380,7 +379,6 @@ TaskManagementBundlePlugin.panel.add(layout);
 			['In Progress', 'In Progress'],
 			['Completed', 'Completed']
 		    ],
-                    id: 0,
                     fields: ['value', 'text'],
                     queryMode: 'local',
                     displayField: 'name',
@@ -404,7 +402,6 @@ TaskManagementBundlePlugin.panel.add(layout);
 			['Document', 'Document'],
 			['Asset', 'Asset']
 		    ],
-                    id: 0,
                     fields: ['value', 'text'],
                     queryMode: 'local',
                     displayField: 'name',
@@ -439,7 +436,7 @@ TaskManagementBundlePlugin.panel.add(layout);
                                         var form = AddTaskForm.getForm();
                                         form.submit({
                                             method  : 'POST',
-                                            url:'../task_management',
+                                            url:'../save_task',
                                             success : function() {
                                                 Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
                                                     AddTaskForm.reset();
