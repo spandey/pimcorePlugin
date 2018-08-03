@@ -338,7 +338,7 @@ TaskManagementBundlePlugin.panel.add(layout);
         
         var AddTaskForm = Ext.create('Ext.form.Panel', {
             renderTo: document.body,
-            id:'AddTaskFormId',
+            
             height: 500,
             width: 500,
             bodyPadding: 10,
@@ -424,6 +424,7 @@ TaskManagementBundlePlugin.panel.add(layout);
                     handler: function() {
                         var panelTitle = "Add Task";
                         var win = new Ext.Window({
+                            modal:true,
                             title:panelTitle,
                             width:500,
                             height:550,
@@ -440,7 +441,7 @@ TaskManagementBundlePlugin.panel.add(layout);
                                             success : function() {
                                                 Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
                                                     AddTaskForm.reset();
-                                                    win.hide();
+                                                    win.close();
                                                 });
                                             }
                                         });
@@ -509,3 +510,4 @@ TaskManagementBundlePlugin.panel.add(layout);
 });
 
 var TaskManagementBundlePlugin = new pimcore.plugin.TaskManagementBundle();
+
