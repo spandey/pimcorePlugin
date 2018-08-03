@@ -349,7 +349,8 @@ TaskManagementBundlePlugin.panel.add(layout);
                     fieldLabel: 'Description',
                     name: 'description',
                     grow      : true,
-                    anchor    : '100%'
+                    anchor    : '100%',
+                    allowBlank: false
                 },
                 {   
                     xtype: 'datefield',
@@ -415,24 +416,6 @@ TaskManagementBundlePlugin.panel.add(layout);
                     fieldLabel: 'Subject',
                     name: 'subject'
                 }
-            ],
-            buttons: [
-                {   id:'saveBtn',
-                    text: 'Save',
-                    handler : function(btn) {
-                        var form = AddTaskForm.getForm();
-                        var domain = 'http://lpim.com/';
-                        form.submit({
-                            method  : 'POST',
-                            url: domain+'task_management',
-                            success : function() {
-                                Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
-                                    form.hide();
-                                });
-                            }
-                        });
-                    }
-                }
             ]
         });
 
@@ -449,7 +432,24 @@ TaskManagementBundlePlugin.panel.add(layout);
                             height:550,
                             closeAction :'hide',
                             plain       : true,
-                            items  : [AddTaskForm]
+                            items  : [AddTaskForm],
+                            buttons: [
+                                {   text: 'Save',
+                                    handler : function(btn) {
+                                        var form = AddTaskForm.getForm();
+                                        form.submit({
+                                            method  : 'POST',
+                                            url:'../task_management',
+                                            success : function() {
+                                                Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
+                                                    AddTaskForm.reset();
+                                                    win.hide();
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            ]
                         });
                         win.show();
                     },

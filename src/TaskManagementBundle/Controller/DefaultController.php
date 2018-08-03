@@ -16,25 +16,26 @@ class DefaultController extends FrontendController
      */
     public function indexAction(Request $request)
     {
-        p_r($_POST);
-        
         $Description =$_POST['description'];
+        $DueDate = date('Y-m-d H:i:s', strtotime($_POST['due_date']));
         $Priority =  $_POST['priority'];
-        $Status =  $_POST['status'];
-        $Start_date =  $_POST['start_date'];
-        $Completion_date =  $_POST['completion_date'];
-        $Associated_element =  $_POST['associated_element'];
+        $Status = $_POST['status']; 
+        $StartDate = date('Y-m-d H:i:s', strtotime($_POST['start_date']));
+        $CompletionDate =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']));
+        $AssociatedElement =  $_POST['associated_element'];
         $Subject = $_POST['subject'];
      
-        
         $TaskManagmentObj = new Model\TaskManagement();
-        $TaskManagmentObj->setId(2);
         $TaskManagmentObj->setDescription($Description);
+        $TaskManagmentObj->setDue_date($DueDate);
         $TaskManagmentObj->setPriority($Priority);
         $TaskManagmentObj->setStatus($Status);
+        $TaskManagmentObj->setStart_date($StartDate);
+        $TaskManagmentObj->setCompletion_date($CompletionDate);
+        $TaskManagmentObj->setAssociated_element($AssociatedElement);
         $TaskManagmentObj->setSubject($Subject);
         $TaskManagmentObj->save();
-        
-        return new Response('Hello world from task_management');
+        die;
+        //return new Response('Task saved successfully');
     }
 }
