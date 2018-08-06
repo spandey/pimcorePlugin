@@ -335,86 +335,9 @@ TaskManagementBundlePlugin.panel.add(layout);
             }
         ];
         
+       
         
-        var AddTaskForm = Ext.create('Ext.form.Panel', {
-            renderTo: document.body,
-            
-            height: 500,
-            width: 500,
-            bodyPadding: 10,
-            defaultType: 'textfield',
-            items: [
-                {
-                    xtype     : 'textareafield',
-                    fieldLabel: 'Description',
-                    name: 'description',
-                    grow      : true,
-                    anchor    : '100%',
-                    allowBlank: false
-                },
-                {   
-                    xtype: 'datefield',
-                    fieldLabel: 'Due Date',
-                    name: 'due_date'
-                },
-                {   
-                    xtype: 'combo',
-                    fieldLabel: 'Priority',
-                    name: 'priority',
-                    store: [
-			['High', 'High'],
-			['Normal', 'Normal'],
-			['Low', 'Low']
-		    ],
-                    fields: ['value', 'text'],
-                    queryMode: 'local',
-                    displayField: 'name',
-                    valueField: 'abbr',
-                },
-                {   xtype: 'combo',
-                    fieldLabel: 'Status',
-                    name: 'status',
-                    store: [
-			['Not started', 'Not started'],
-			['In Progress', 'In Progress'],
-			['Completed', 'Completed']
-		    ],
-                    fields: ['value', 'text'],
-                    queryMode: 'local',
-                    displayField: 'name',
-                    valueField: 'abbr',
-                },
-                {
-                    xtype: 'datefield',
-                    fieldLabel: 'Start Date',
-                    name: 'start_date'
-                },
-                {
-                    xtype: 'datefield',
-                    fieldLabel: 'Completion Date',
-                    name: 'completion_date'
-                },
-                {   xtype: 'combo',
-                    fieldLabel: 'Associated Element',
-                    name: 'associated_element',
-                    store: [
-			['Object', 'Object'],
-			['Document', 'Document'],
-			['Asset', 'Asset']
-		    ],
-                    fields: ['value', 'text'],
-                    queryMode: 'local',
-                    displayField: 'name',
-                    valueField: 'abbr'
-                },
-                
-                {   
-                    xtype: 'textfield',
-                    fieldLabel: 'Subject',
-                    name: 'subject'
-                }
-            ]
-        });
+        
 
         var toolbar = Ext.create('Ext.Toolbar', {
             cls: 'main-toolbar',
@@ -423,11 +346,92 @@ TaskManagementBundlePlugin.panel.add(layout);
                     text: t('Add Task'),
                     handler: function() {
                         var panelTitle = "Add Task";
+                         
+			var AddTaskForm = Ext.create('Ext.form.Panel', {
+			    renderTo: document.body,
+			    
+			    height: 500,
+			    width: 500,
+			    bodyPadding: 10,
+			    defaultType: 'textfield',
+			    items: [
+				{
+				    xtype     : 'textareafield',
+				    fieldLabel: 'Description',
+				    name: 'description',
+				    grow      : true,
+				    anchor    : '100%',
+				    allowBlank: false
+				},
+				{   
+				    xtype: 'datefield',
+				    fieldLabel: 'Due Date',
+				    name: 'due_date'
+				},
+				{   
+				    xtype: 'combo',
+				    fieldLabel: 'Priority',
+				    name: 'priority',
+				    store: [
+					['High', 'High'],
+					['Normal', 'Normal'],
+					['Low', 'Low']
+				    ],
+				    fields: ['value', 'text'],
+				    queryMode: 'local',
+				    displayField: 'name',
+				    valueField: 'abbr',
+				},
+				{   xtype: 'combo',
+				    fieldLabel: 'Status',
+				    name: 'status',
+				    store: [
+					['Not started', 'Not started'],
+					['In Progress', 'In Progress'],
+					['Completed', 'Completed']
+				    ],
+				    fields: ['value', 'text'],
+				    queryMode: 'local',
+				    displayField: 'name',
+				    valueField: 'abbr',
+				},
+				{
+				    xtype: 'datefield',
+				    fieldLabel: 'Start Date',
+				    name: 'start_date'
+				},
+				{
+				    xtype: 'datefield',
+				    fieldLabel: 'Completion Date',
+				    name: 'completion_date'
+				},
+				{   xtype: 'combo',
+				    fieldLabel: 'Associated Element',
+				    name: 'associated_element',
+				    store: [
+					['Object', 'Object'],
+					['Document', 'Document'],
+					['Asset', 'Asset']
+				    ],
+				    fields: ['value', 'text'],
+				    queryMode: 'local',
+				    displayField: 'name',
+				    valueField: 'abbr'
+				},
+				
+				{   
+				    xtype: 'textfield',
+				    fieldLabel: 'Subject',
+				    name: 'subject'
+				}
+			    ]
+			});
+        
                         var win = new Ext.Window({
                             modal:true,
                             title:panelTitle,
                             width:500,
-                            height:550,
+                            height:500,
                             closeAction :'hide',
                             plain       : true,
                             items  : [AddTaskForm],
