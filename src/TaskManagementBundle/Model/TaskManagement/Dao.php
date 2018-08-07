@@ -1,8 +1,16 @@
 <?php
+
+/*
+ * TaskManagementBundle
+*/
 namespace TaskManagementBundle\Model\TaskManagement;
- 
 use Pimcore\Model\Dao\AbstractDao;
- 
+/*
+ * Contains Task Management data access object function definition such as save/delete 
+ * @method getById($id = null)
+ * @method save()
+ * @method delete()
+ */
 class Dao extends AbstractDao {
  
     protected $tableName = 'task_management';
@@ -30,18 +38,18 @@ class Dao extends AbstractDao {
      * save Task
      */
     public function save() {
-        $vars = get_object_vars($this->model);
+        $vars = get_object_vars($this->model); 
  
         $buffer = [];
  
-        $validColumns = $this->getValidTableColumns($this->tableName);
- 
+        $validColumns = $this->getValidTableColumns($this->tableName); 
+        
         if(count($vars))
             foreach ($vars as $k => $v) {
- 
+
                 if(!in_array($k, $validColumns))
                     continue;
- 
+               
                 $getter = "get" . ucfirst($k);
                 
                 if(!is_callable([$this->model, $getter]))
@@ -54,9 +62,7 @@ class Dao extends AbstractDao {
  
                 $buffer[$k] = $value;
             }
-            
-            
- 
+        
         if($this->model->getId() !== null) {
            $this->db->update($this->tableName, $buffer, ["id" => $this->model->getId()]);
            return;
