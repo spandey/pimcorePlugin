@@ -316,25 +316,24 @@ var layout = new Ext.Panel({
 
         var typesColumns = [
             {
-                text: t("subject"), width: 50, sortable: true, dataIndex: 'subject', renderer: function (d) {
-                    return '<img src="/pimcore/static6/img/flat-color-icons/' + d + '.svg" style="height: 16px" />';
-                }
+                text: t("subject"), width: 50, sortable: true, dataIndex: 'subject'
             },
             {text: t("Description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
-            {text: t("priority"), flex: 60, sortable: true, dataIndex: 'priority'},
+            {
+                text: t("Due date"), flex: 140, sortable: true, dataIndex: 'due_date',
+//                renderer: function (d) {
+//                    var date = new Date(d * 1000);
+//                    return Ext.Date.format(date, "Y-m-d H:i:s");
+//                },
+//                filter: 'date'
+
+            },
+            {text: t("Priority"), flex: 60, sortable: true, dataIndex: 'priority'},
             {text: t("Status"), flex: 60, sortable: true, dataIndex: 'status'},
             {text: t("Start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
             {text: t("Completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
             {text: t("Associated Element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
-            {
-                text: t("due date"), flex: 140, sortable: true, dataIndex: 'due_date',
-                renderer: function (d) {
-                    var date = new Date(d * 1000);
-                    return Ext.Date.format(date, "Y-m-d H:i:s");
-                },
-                filter: 'date'
-
-            },
+            
             {
                 xtype: 'actioncolumn',
                 menuText: t('delete'),
@@ -497,11 +496,11 @@ var layout = new Ext.Panel({
 
       this.selectionColumn = new Ext.selection.CheckboxModel();
        // this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
-       this.store = new Ext.data.JsonStore({
+      this.store = new Ext.data.JsonStore({
         totalProperty: 'total',
         pageSize: 10,
         proxy: {
-            url: '/task_listing',
+            url: '../show_task_listing',
             type: 'ajax',
             reader: {
                 type: 'json',
@@ -513,16 +512,18 @@ var layout = new Ext.Panel({
                 ],
          baseParams:{
                 showOpt: 1,
+                
         },
       listeners: {
                 beforeload: function (store) {
-                    commonscreenPlugin.store.getProxy().extraParams.limit = this.pagingtoolbar.pageSize;
-                    commonscreenPlugin.store.getProxy().extraParams.start = 0;
-                }            
+                    this.store.getProxy().extraParams.limit = this.pagingtoolbar.pageSize;
+                    this.store.getProxy().extraParams.start = 0;
+                }.bind(this)            
         }
     });
-       /* this.store = pimcore.helpers.grid.buildDefaultStore(
-                '/task_listing?',
+       /* var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
+       this.store = pimcore.helpers.grid.buildDefaultStore(
+                '/show_task_listing?',
                 [
                     'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
                 ],
@@ -532,9 +533,9 @@ var layout = new Ext.Panel({
             );
             var reader = this.store.getProxy().getReader();
             reader.setRootProperty('p_results');
-            reader.setTotalProperty('p_totalCount');*/
-            //this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
-             this.pagingtoolbar = new Ext.PagingToolbar({
+            reader.setTotalProperty('p_totalCount');
+            this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);*/
+           this.pagingtoolbar = new Ext.PagingToolbar({
             pageSize: 10,
             store: this.store,
             displayInfo: true,
@@ -549,8 +550,8 @@ var layout = new Ext.Panel({
         }));
         this.pagingtoolbar.add(new Ext.form.ComboBox({
             store: [
-                [10, "10"],
-                [20, "20"],
+                [1, "1"],
+                [2, "2"],
                 [40, "40"],
                 [60, "60"],
                 [80, "80"],
@@ -584,30 +585,22 @@ var layout = new Ext.Panel({
             region: "center",
             columns: typesColumns,
             tbar: toolbar,
-//            listeners: {
-//                "rowclick": ""//this.updateButtonStates.bind(this)
-//            },
-//            viewConfig: {
-//                forceFit: true
-//            }
- // customize view config
-                viewConfig: {
-                    forceFit:true,
-                    // loadMask: false,
-                    getRowClass: function(record) {
-                        return 'log-type-' + record.get('priority');
-                    }
-                },
 
-                listeners: {
-                    rowdblclick : function(grid, record, tr, rowIndex, e, eOpts ) {
-                        new pimcore.plugin.detailwindow(this.store.getAt(rowIndex).data);
-                    }.bind(this)
-                },
+ // customize view config
+                 viewConfig: {
+                enableRowBody: true,
+                showPreview: true,
+            },
+
+//                listeners: {
+//                    rowdblclick : function(grid, record, tr, rowIndex, e, eOpts ) {
+//                        new pimcore.plugin.detailwindow(this.store.getAt(rowIndex).data);
+//                    }.bind(this)
+//                },
         });
 
         //this.grid.on("rowcontextmenu", this.onRowContextmenu.bind(this));
-
+        this.store.load();
         return this.grid;
     },
 });

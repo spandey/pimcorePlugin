@@ -16,7 +16,11 @@ class TaskManagement extends AbstractModel {
      * @var bigint(20)
     */
     public $id;
- 
+    
+     /**
+     * @var varchar
+    */
+    public $subject;
     /**
      * @var text
     */
@@ -53,10 +57,7 @@ class TaskManagement extends AbstractModel {
     public $associated_element;
     
     
-    /**
-     * @var varchar
-    */
-    public $subject;
+   
     
     
     /**

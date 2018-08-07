@@ -21,38 +21,7 @@ class DefaultController extends FrontendController
     {
         return new Response('Task saved successfully');
     }
-    /**
-     * @Route("/task_listing")
-     */
-    public function taskListing () {
-        $logEntry = [
-                'id'                => 1,
-                'subject'               =>"hghghghfg",
-                'description'           => "fefefdfd",
-                'due_date'         => 2,
-                'priority'          => "ddsdsdsd",
-                'status'        => "ddddfff",
-                'start_date'     => 3,
-                'completion_date' => 4,
-                'associated_element'         => "",
-              
-            ];
-
-            $logEntries[] = $logEntry;
-        
-
-//        return $this->dataJson([
-//            'p_totalCount' => 1,
-//            'p_results'    => $logEntries,
-//        ]);
-        $this->_helper->json(array(
-            "success" => true,
-            'data' => $logEntries,
-            'total' => 1,
-            
-        ));
-        
-    }
+   
      /**
      * Returns a JsonResponse that uses the admin serializer
      *
