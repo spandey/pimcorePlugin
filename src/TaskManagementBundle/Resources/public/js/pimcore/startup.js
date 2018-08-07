@@ -109,12 +109,21 @@ if (perspectiveCfg.inToolbar("extras")) {
                 width: 80,
                 xtype: 'timefield'
             });
-
+            this.priorityStore = [
+			['High', 'High'],
+			['Normal', 'Normal'],
+			['Low', 'Low']
+		    ];
+            this.statusStore = [
+			['Not started', 'Not started'],
+			['In Progress', 'In Progress'],
+			['Completed', 'Completed']
+		    ];
             var formSearch = this.find.bind(this);
             this.searchpanel = new Ext.FormPanel({
                 region: "east",
                 title: t("Task Search Form"),
-                width: 350,
+                width: 360,
                 height: 500,
                 border: false,
                 autoScroll: true,
@@ -129,7 +138,7 @@ if (perspectiveCfg.inToolbar("extras")) {
                     handler: this.clearValues.bind(this),
                     iconCls: "pimcore_icon_stop"
                 },{
-                    reference: 'log_search_button',
+                    reference: 'search_button',
                     text: t("Search"),
                     handler: this.find.bind(this),
                     iconCls: "pimcore_icon_search"
@@ -173,7 +182,6 @@ if (perspectiveCfg.inToolbar("extras")) {
                             fieldLabel: t('Priority'),
                             width: 320,
                             listWidth: 150,
-                            mode: 'local',
                             typeAhead:true,
                             forceSelection: true,
                             triggerAction: 'all',
@@ -182,20 +190,20 @@ if (perspectiveCfg.inToolbar("extras")) {
                             valueField: 'key'
                         },{
                             xtype:'combo',
-                            name: 'staus',
-                            fieldLabel: t('Staus'),
+                            name: 'status',
+                            fieldLabel: t('Status'),
                             width: 320,
                             listWidth: 150,
-                            mode: 'local',
                             typeAhead:true,
                             forceSelection: true,
                             triggerAction: 'all',
-                            store: this.componentStore,
+                            store: this.statusStore,
                             displayField: 'value',
                             valueField: 'key'
                         }]
                 }]});
-       TaskManagementBundlePlugin.panel = new Ext.Panel({
+        if (!this.panel) {
+       this.panel = new Ext.Panel({
             id:         "task_manager_panel",
             title:      "Task Manager",
             border:     false,
@@ -203,17 +211,23 @@ if (perspectiveCfg.inToolbar("extras")) {
             closable:   true,
            // items:      [this.getGrid()]
         });
+        
 var layout = new Ext.Panel({
                 border: false,
                 layout: "border",
                 items: [this.searchpanel, this.getGrid() ],
             });
-TaskManagementBundlePlugin.panel.add(layout);
+        this.panel.add(layout);
         var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-        tabPanel.add(TaskManagementBundlePlugin.panel);
-        tabPanel.setActiveTab(TaskManagementBundlePlugin.panel);
+        tabPanel.add(this.panel);
+        tabPanel.setActiveItem("task_manager_panel");
         
+            this.panel.on("destroy", function () {
+                pimcore.globalmanager.remove("task_manager_panel");
+            }.bind(this));
         pimcore.layout.refresh();
+    }
+        return this.panel;
         /* try {
             pimcore.globalmanager.get("pimcore_task_management").activate();
         }
@@ -298,7 +312,7 @@ TaskManagementBundlePlugin.panel.add(layout);
             }
         });
 
-        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
+        
 
         var typesColumns = [
             {
@@ -306,12 +320,12 @@ TaskManagementBundlePlugin.panel.add(layout);
                     return '<img src="/pimcore/static6/img/flat-color-icons/' + d + '.svg" style="height: 16px" />';
                 }
             },
-            {text: t("description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
+            {text: t("Description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
             {text: t("priority"), flex: 60, sortable: true, dataIndex: 'priority'},
-            {text: t("status"), flex: 60, sortable: true, dataIndex: 'status'},
-            {text: t("start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
-            {text: t("completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
-            {text: t("associated_element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
+            {text: t("Status"), flex: 60, sortable: true, dataIndex: 'status'},
+            {text: t("Start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
+            {text: t("Completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
+            {text: t("Associated Element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
             {
                 text: t("due date"), flex: 140, sortable: true, dataIndex: 'due_date',
                 renderer: function (d) {
@@ -479,30 +493,115 @@ TaskManagementBundlePlugin.panel.add(layout);
             ]
         });
 
-        this.selectionColumn = new Ext.selection.CheckboxModel();
+      this.selectionColumn = new Ext.selection.CheckboxModel();
        // this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
+       this.store = new Ext.data.JsonStore({
+        totalProperty: 'total',
+        pageSize: 10,
+        proxy: {
+            url: '/task_listing',
+            type: 'ajax',
+            reader: {
+                type: 'json',
+                rootProperty: 'data'
+            }
+        },
+        fields:  [
+                    'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
+                ],
+         baseParams:{
+                showOpt: 1,
+        },
+      listeners: {
+                beforeload: function (store) {
+                    commonscreenPlugin.store.getProxy().extraParams.limit = this.pagingtoolbar.pageSize;
+                    commonscreenPlugin.store.getProxy().extraParams.start = 0;
+                }            
+        }
+    });
+       /* this.store = pimcore.helpers.grid.buildDefaultStore(
+                '/task_listing?',
+                [
+                    'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
+                ],
+                itemsPerPage, {
+                    autoLoad: true
+                }
+            );
+            var reader = this.store.getProxy().getReader();
+            reader.setRootProperty('p_results');
+            reader.setTotalProperty('p_totalCount');*/
+            //this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
+             this.pagingtoolbar = new Ext.PagingToolbar({
+            pageSize: 10,
+            store: this.store,
+            displayInfo: true,
+            displayMsg: '{0} - {1} /  {2}',
+            emptyMsg: 'No item found'
+    });
 
+      this.pagingtoolbar.add("-");
+
+        this.pagingtoolbar.add(new Ext.Toolbar.TextItem({
+            text: t("items_per_page")
+        }));
+        this.pagingtoolbar.add(new Ext.form.ComboBox({
+            store: [
+                [10, "10"],
+                [20, "20"],
+                [40, "40"],
+                [60, "60"],
+                [80, "80"],
+                [100, "100"]
+            ],
+            queryMode: "local",
+            width: 100,
+            value: 10,
+            triggerAction: "all",
+            listeners: {
+                select: function(box, rec, index) {
+                    this.pagingtoolbar.pageSize = intval(rec.data.field1);
+                    this.store.pageSize = intval(rec.data.field1);
+                    this.pagingtoolbar.moveFirst();
+                }.bind(this)
+            }
+        }));
+            
         this.grid = new Ext.grid.GridPanel({
             frame: false,
             autoScroll: true,
-            //store: this.store,
+            store: this.store,
             columnLines: true,
             bbar: this.pagingtoolbar,
             stripeRows: true,
             selModel: this.selectionColumn,
-            plugins: ['pimcore.gridfilters'],
+           // plugins: ['pimcore.gridfilters'],
             title: t("Task Manager"),
             trackMouseOver:false,
             disableSelection:true,
             region: "center",
             columns: typesColumns,
             tbar: toolbar,
-            listeners: {
-                "rowclick": ""//this.updateButtonStates.bind(this)
-            },
-            viewConfig: {
-                forceFit: true
-            }
+//            listeners: {
+//                "rowclick": ""//this.updateButtonStates.bind(this)
+//            },
+//            viewConfig: {
+//                forceFit: true
+//            }
+ // customize view config
+                viewConfig: {
+                    forceFit:true,
+                    // loadMask: false,
+                    getRowClass: function(record) {
+                        return 'log-type-' + record.get('priority');
+                    }
+                },
+
+                listeners: {
+                    rowdblclick : function(grid, record, tr, rowIndex, e, eOpts ) {
+                        new pimcore.plugin.detailwindow(this.store.getAt(rowIndex).data);
+                    }.bind(this)
+                },
         });
 
         //this.grid.on("rowcontextmenu", this.onRowContextmenu.bind(this));
