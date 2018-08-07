@@ -53,7 +53,13 @@ class AdminController extends FrontendController
         $TaskManagmentObj->setAssociated_element($AssociatedElement);
         $TaskManagmentObj->setSubject($Subject);
         $TaskManagmentObj->save();
-        die;
+        
+	die;
+	
+	$TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
+        $TaskListingObj->setCondition("id > ?", 91)->setLimit(2);
+        $TaskListingData = $TaskListingObj->load(); 
+        p_r($TaskListingData);
        
         
         
