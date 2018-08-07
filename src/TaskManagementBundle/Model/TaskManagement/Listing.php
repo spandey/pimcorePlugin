@@ -1,6 +1,6 @@
 <?php
- 
-namespace AppBundle\Model\TaskManagement;
+
+namespace TaskManagementBundle\Model\TaskManagement;
  
 use Pimcore\Model;
 use Zend\Paginator\Adapter\AdapterInterface;
@@ -9,10 +9,11 @@ use Zend\Paginator\AdapterAggregateInterface;
 class Listing extends Model\Listing\AbstractListing implements \Zend_Paginator_Adapter_Interface, \Zend_Paginator_AdapterAggregate, \Iterator, AdapterInterface, AdapterAggregateInterface
 {
     /**
-     * List of Votes.
+
+     * List of Tasks.
      *
      * @var array
-     */
+    */
     public $data = null;
  
     /**

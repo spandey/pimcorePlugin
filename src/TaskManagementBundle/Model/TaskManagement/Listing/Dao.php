@@ -1,9 +1,9 @@
 <?php
- 
-namespace AppBundle\Model\TaskManagement\Listing;
+
+namespace TaskManagementBundle\Model\TaskManagement\Listing;
  
 use Pimcore\Model\Listing;
-use AppBundle\Model;
+use TaskManagementBundle\Model;
 use Pimcore\Tool;
  
 class Dao extends Listing\Dao\AbstractDao
@@ -62,7 +62,8 @@ class Dao extends Listing\Dao\AbstractDao
     /**
      * Loads objects from the database.
      *
-     * @return Model\Vote[]
+
+     * @return Model\Task[]
      */
     public function load()
     {
@@ -71,7 +72,8 @@ class Dao extends Listing\Dao\AbstractDao
  
         $objects = array();
         foreach ($list as $o_id) {
-            if ($object = Model\Vote::getById($o_id)) {
+
+            if ($object = Model\TaskManagement::getById($o_id)) {
                 $objects[] = $object;
             }
         }
