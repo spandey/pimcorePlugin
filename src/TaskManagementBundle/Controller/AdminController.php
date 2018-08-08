@@ -12,6 +12,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TaskManagementBundle\Model;
+use \Pimcore\Model\DataObject;
+
 /* 
  * Task Backend Controller
  * 
@@ -51,84 +53,59 @@ class AdminController extends FrontendController
         $TaskManagmentObj->setAssociated_element($AssociatedElement);
         $TaskManagmentObj->setSubject($Subject);
         $TaskManagmentObj->save();
+        die;
         
-	die;
-	
-	$TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        $TaskListingObj->setCondition("id > ?", 91)->setLimit(2);
-        $TaskListingData = $TaskListingObj->load(); 
-        p_r($TaskListingData);
-       
-        
-        
-    }
-     /**
-     * @Route("/task_listing")
-     */
-    public function taskListing () {
-       /* $logEntry = [
-                'id'                => 1,
-                'subject'               =>"hghghghfg",
-                'description'           => "fefefdfd",
-                'due_date'         => 2,
-                'priority'          => "ddsdsdsd",
-                'status'        => "ddddfff",
-                'start_date'     => 3,
-                'completion_date' => 4,
-                'associated_element'         => "",
-              
-            ];
-
-            $logEntries[] = $logEntry;
-        
-
-//        return $this->dataJson([
-//            'p_totalCount' => 1,
-//            'p_results'    => $logEntries,
-//        ]);
-        $this->_helper->json(array(
-            "success" => true,
-            'data' => $logEntries,
-            'total' => 1,
-            
-        ));*/
-       // echo "dddd_________";
-        //die;
         $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        //$TaskListingObj->setCondition("id > ?", 91)->setLimit(2);
+       // $TaskListingObj->setCondition("id > ?", 91)->setLimit(2);
         $TaskListingData = $TaskListingObj->load(); 
-//        $this->_helper->json(array(
-//            "success" => true,
-//            'data' => $TaskListingData,
-//            'total' => 1,
-//            
-//        ));
         p_r($TaskListingData);
+        die;
         
     }
+    
     /**
-     * @Route("/show_task_listing")
-     */
-    public function showAction(Request $request)
-    {
-        $start = $request->get('start',0);
-        $limit = $request->get('limit',10);
+     * Update Task Detail for specific id
+     * 
+     * 
+     * @Route("/update_task")
+     * 
+    */
+    public function UpdateTask() {
+        $id= $_POST['id'];
+        $Description =$_POST['description'];
+        $DueDate = date('Y-m-d H:i:s', strtotime($_POST['due_date']));
+        $Priority =  $_POST['priority'];
+        $Status = $_POST['status']; 
+        $StartDate = date('Y-m-d H:i:s', strtotime($_POST['start_date']));
+        $CompletionDate =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']));
+        $AssociatedElement =  $_POST['associated_element'];
+        $Subject = $_POST['subject'];
         
-        
-        $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        $TaskListingObj->setOffset($start);
-        $TaskListingObj->setLimit($limit);
-        //$TaskListingObj->setCondition('column = 1 AND column2 = 2');
-        $totalCount = $TaskListingObj->count();
-        $TaskListingData = $TaskListingObj->load(); 
-       
-    
-          $response =  \GuzzleHttp\json_encode(["success" => true,
-            'data' => $TaskListingData,
-            'total' => $totalCount]);
-
-        return new Response($response);
-    
-        
+        //$TaskManagmentObj = new Model\TaskManagement();
+        die;
     }
+    
+    
+    /**
+     * Task Detail for specific id
+     * 
+     * @Route("/edit_task")
+     * @return array task detail
+     * 
+    */
+    public function EditTask() {
+        $id= $_GET['id'];
+        $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
+        $TaskListingObj->setCondition("id = ?", $id)->setLimit(1);
+        $TaskDetail = $TaskListingObj->load(); 
+       
+        $response = \GuzzleHttp\json_encode([
+            'success'=>$TaskDetail
+        ]);
+        
+        return new Response($response);
+        die;
+    }
+    
+    
 }
