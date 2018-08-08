@@ -62,59 +62,15 @@ class AdminController extends FrontendController
         
         
     }
-     /**
-     * @Route("/task_listing")
-     */
-    public function taskListing () {
-       /* $logEntry = [
-                'id'                => 1,
-                'subject'               =>"hghghghfg",
-                'description'           => "fefefdfd",
-                'due_date'         => 2,
-                'priority'          => "ddsdsdsd",
-                'status'        => "ddddfff",
-                'start_date'     => 3,
-                'completion_date' => 4,
-                'associated_element'         => "",
-              
-            ];
-
-            $logEntries[] = $logEntry;
-        
-
-//        return $this->dataJson([
-//            'p_totalCount' => 1,
-//            'p_results'    => $logEntries,
-//        ]);
-        $this->_helper->json(array(
-            "success" => true,
-            'data' => $logEntries,
-            'total' => 1,
-            
-        ));*/
-       // echo "dddd_________";
-        //die;
-        $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        //$TaskListingObj->setCondition("id > ?", 91)->setLimit(2);
-        $TaskListingData = $TaskListingObj->load(); 
-//        $this->_helper->json(array(
-//            "success" => true,
-//            'data' => $TaskListingData,
-//            'total' => 1,
-//            
-//        ));
-        p_r($TaskListingData);
-        
-    }
+    
     /**
      * @Route("/show_task_listing")
      */
     public function showAction(Request $request)
     {
-        $start = $request->get('start',0);
-        $limit = $request->get('limit',10);
-        
-        
+        $start = $request->get('start');
+        $limit = $request->get('limit');
+     
         $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
         $TaskListingObj->setOffset($start);
         $TaskListingObj->setLimit($limit);

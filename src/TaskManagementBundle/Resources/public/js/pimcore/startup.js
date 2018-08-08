@@ -13,6 +13,7 @@ pimcore.plugin.TaskManagementBundle = Class.create(pimcore.plugin.admin, {
 
         Ext.apply(this.config, config);
         this.searchParams = this.config.searchParams;
+        pimcore.layout.refresh();
         pimcore.plugin.broker.registerPlugin(this);
     },
 
@@ -273,27 +274,7 @@ var layout = new Ext.Panel({
     getGrid: function () {
         var ryc = pimcore.globalmanager.get("layout_toolbar");
         var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
-       /* this.store = pimcore.helpers.grid.buildDefaultStore(
-            '/admin/recyclebin/list?',
-            [
-                {name: 'id'},
-                {name: 'type'},
-                {name: 'subtype'},
-                {name: 'path'},
-                {name: 'amount'},
-                {name: 'deletedby'},
-                {name: 'date'}
-            ],
-            itemsPerPage
-        );
-        this.store.getProxy().setBatchActions(false);
 
-        this.store.addListener('load', function () {
-            if (this.store.getCount() > 0) {
-                Ext.getCmp("pimcore_recyclebin_button_flush").enable();
-            }
-        }.bind(this));
-*/
 
         this.filterField = new Ext.form.TextField({
             xtype: "textfield",
