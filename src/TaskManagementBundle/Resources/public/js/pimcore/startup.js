@@ -110,21 +110,12 @@ if (perspectiveCfg.inToolbar("extras")) {
                 width: 80,
                 xtype: 'timefield'
             });
-            this.priorityStore = [
-			['High', 'High'],
-			['Normal', 'Normal'],
-			['Low', 'Low']
-		    ];
-            this.statusStore = [
-			['Not started', 'Not started'],
-			['In Progress', 'In Progress'],
-			['Completed', 'Completed']
-		    ];
+
             var formSearch = this.find.bind(this);
             this.searchpanel = new Ext.FormPanel({
                 region: "east",
                 title: t("Task Search Form"),
-                width: 360,
+                width: 350,
                 height: 500,
                 border: false,
                 autoScroll: true,
@@ -139,7 +130,7 @@ if (perspectiveCfg.inToolbar("extras")) {
                     handler: this.clearValues.bind(this),
                     iconCls: "pimcore_icon_stop"
                 },{
-                    reference: 'search_button',
+                    reference: 'log_search_button',
                     text: t("Search"),
                     handler: this.find.bind(this),
                     iconCls: "pimcore_icon_search"
@@ -183,6 +174,7 @@ if (perspectiveCfg.inToolbar("extras")) {
                             fieldLabel: t('Priority'),
                             width: 320,
                             listWidth: 150,
+                            mode: 'local',
                             typeAhead:true,
                             forceSelection: true,
                             triggerAction: 'all',
@@ -191,20 +183,20 @@ if (perspectiveCfg.inToolbar("extras")) {
                             valueField: 'key'
                         },{
                             xtype:'combo',
-                            name: 'status',
-                            fieldLabel: t('Status'),
+                            name: 'staus',
+                            fieldLabel: t('Staus'),
                             width: 320,
                             listWidth: 150,
+                            mode: 'local',
                             typeAhead:true,
                             forceSelection: true,
                             triggerAction: 'all',
-                            store: this.statusStore,
+                            store: this.componentStore,
                             displayField: 'value',
                             valueField: 'key'
                         }]
                 }]});
-        if (!this.panel) {
-       this.panel = new Ext.Panel({
+       TaskManagementBundlePlugin.panel = new Ext.Panel({
             id:         "task_manager_panel",
             title:      "Task Manager",
             border:     false,
@@ -212,23 +204,17 @@ if (perspectiveCfg.inToolbar("extras")) {
             closable:   true,
            // items:      [this.getGrid()]
         });
-        
 var layout = new Ext.Panel({
                 border: false,
                 layout: "border",
                 items: [this.searchpanel, this.getGrid() ],
             });
-        this.panel.add(layout);
+TaskManagementBundlePlugin.panel.add(layout);
         var tabPanel = Ext.getCmp("pimcore_panel_tabs");
-        tabPanel.add(this.panel);
-        tabPanel.setActiveItem("task_manager_panel");
+        tabPanel.add(TaskManagementBundlePlugin.panel);
+        tabPanel.setActiveTab(TaskManagementBundlePlugin.panel);
         
-            this.panel.on("destroy", function () {
-                pimcore.globalmanager.remove("task_manager_panel");
-            }.bind(this));
         pimcore.layout.refresh();
-    }
-        return this.panel;
         /* try {
             pimcore.globalmanager.get("pimcore_task_management").activate();
         }
@@ -293,28 +279,29 @@ var layout = new Ext.Panel({
             }
         });
 
-        
+        this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);
 
         var typesColumns = [
             {
-                text: t("subject"), width: 50, sortable: true, dataIndex: 'subject'
+                text: t("subject"), width: 50, sortable: true, dataIndex: 'subject', renderer: function (d) {
+                    return '<img src="/pimcore/static6/img/flat-color-icons/' + d + '.svg" style="height: 16px" />';
+                }
             },
-            {text: t("Description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
+            {text: t("description"), flex: 200, sortable: true, dataIndex: 'description', filter: 'string'},
+            {text: t("priority"), flex: 60, sortable: true, dataIndex: 'priority'},
+            {text: t("status"), flex: 60, sortable: true, dataIndex: 'status'},
+            {text: t("start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
+            {text: t("completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
+            {text: t("associated_element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
             {
-                text: t("Due date"), flex: 140, sortable: true, dataIndex: 'due_date',
-//                renderer: function (d) {
-//                    var date = new Date(d * 1000);
-//                    return Ext.Date.format(date, "Y-m-d H:i:s");
-//                },
-//                filter: 'date'
+                text: t("due date"), flex: 140, sortable: true, dataIndex: 'due_date',
+                renderer: function (d) {
+                    var date = new Date(d * 1000);
+                    return Ext.Date.format(date, "Y-m-d H:i:s");
+                },
+                filter: 'date'
 
             },
-            {text: t("Priority"), flex: 60, sortable: true, dataIndex: 'priority'},
-            {text: t("Status"), flex: 60, sortable: true, dataIndex: 'status'},
-            {text: t("Start date"), flex: 80, sortable: true, dataIndex: 'start_date'},
-            {text: t("Completion date"), flex: 80, sortable: true, dataIndex: 'completion_date'},
-            {text: t("Associated Element"), flex: 80, sortable: true, dataIndex: 'associated_element'},
-            
             {
                 xtype: 'actioncolumn',
                 menuText: t('delete'),
@@ -330,7 +317,168 @@ var layout = new Ext.Panel({
         ];
         
        
-        
+        function AddEditTaskForm(Use,taskDetail) {
+            if(Use == 'Add') {
+                var panelTitle         = "Add Task";
+                var url                = 'save_task';
+                var msg                = 'Saved';
+                var description        ='';
+                var due_date           ='';
+                var priority           ='';
+                var status             ='';
+                var start_date         ='';
+                var completion_date    ='';
+                var associated_element ='';
+                var subject            ='';
+                
+                
+                
+            } else if(Use == 'Edit') {
+                var panelTitle = "Edit Task";
+                var url = 'update_task';
+                var msg = 'Updated';
+                var description        = taskDetail['description'];
+                var due_date           = taskDetail['due_date'];
+                var priority           = taskDetail['priority'];
+                var status             = taskDetail['status'];
+                var start_date         = taskDetail['start_date'];
+                var completion_date    = taskDetail['completion_date'];
+                var associated_element = taskDetail['associated_element'];
+                var subject            = taskDetail['subject'];
+            }    
+            
+            var AddTaskForm = Ext.create('Ext.form.Panel', {
+                renderTo: document.body,
+                height: 500,
+                width: 500,
+                bodyPadding: 10,
+                defaultType: 'textfield',
+                items: [
+                    {
+                        xtype     : 'textareafield',
+                        fieldLabel: 'Description',
+                        name      : 'description',
+                        grow      : true,
+                        anchor    : '100%',
+                        allowBlank: false,
+                        value     : description
+                    },
+                    {   
+                        xtype     : 'datefield',
+                        fieldLabel: 'Due Date',
+                        name      : 'due_date',
+                        listeners : {
+                            render : function(datefield) {
+                                if(Use == 'Edit')
+                                    datefield.setValue(new Date(due_date));
+                            }
+                        }
+                    },
+                    {   
+                        xtype: 'combo',
+                        fieldLabel: 'Priority',
+                        name: 'priority',
+                        store: [
+                            ['High', 'High'],
+                            ['Normal', 'Normal'],
+                            ['Low', 'Low']
+                        ],
+                        fields: ['value', 'text'],
+                        queryMode: 'local',
+                        displayField: 'name',
+                        valueField: 'abbr',
+                        value:priority
+                    },
+                    {   xtype: 'combo',
+                        fieldLabel: 'Status',
+                        name: 'status',
+                        store: [
+                            ['Not started', 'Not started'],
+                            ['In Progress', 'In Progress'],
+                            ['Completed', 'Completed']
+                        ],
+                        fields: ['value', 'text'],
+                        queryMode: 'local',
+                        displayField: 'name',
+                        valueField: 'abbr',
+                        value:status
+                    },
+                    {
+                        xtype: 'datefield',
+                        fieldLabel: 'Start Date',
+                        name: 'start_date',
+                        listeners : {
+                            render : function(datefield) {
+                                if(Use == 'Edit')
+                                    datefield.setValue(new Date(start_date));
+                            }
+                        }    
+                    },
+                    {
+                        xtype: 'datefield',
+                        fieldLabel: 'Completion Date',
+                        name: 'completion_date',
+                        listeners : {
+                            render : function(datefield) {
+                                if(Use == 'Edit')
+                                    datefield.setValue(new Date(completion_date));
+                            }
+                        }
+                    },
+                    {   xtype: 'combo',
+                        fieldLabel: 'Associated Element',
+                        name: 'associated_element',
+                        store: [
+                            ['Object', 'Object'],
+                            ['Document', 'Document'],
+                            ['Asset', 'Asset']
+                        ],
+                        fields: ['value', 'text'],
+                        queryMode: 'local',
+                        displayField: 'name',
+                        valueField: 'abbr',
+                        value:associated_element
+                    },
+
+                    {   
+                        xtype: 'textfield',
+                        fieldLabel: 'Subject',
+                        name: 'subject',
+                        value:subject
+                    }
+                ]
+            });
+            var win = new Ext.Window({
+                modal:true,
+                title:panelTitle,
+                width:500,
+                height:500,
+                closeAction :'hide',
+                plain       : true,
+                items  : [AddTaskForm],
+                buttons: [
+                    {   text: 'Save',
+                        handler : function(btn) {
+                            var form = AddTaskForm.getForm();
+                            form.submit({
+                                method  : 'POST',
+                                url:'../'+url,
+                                params: {
+                                    "id" : taskDetail['id']
+                                },
+                                success : function() {
+                                    Ext.Msg.alert('Thank You', 'Your Task is '+msg, function() {
+                                        AddTaskForm.reset();
+                                        win.close();
+                                    });
+                                }
+                            });
+                        }
+                    }
+                ]
+            });
+            win.show();
+        }
         
 
         var toolbar = Ext.create('Ext.Toolbar', {
@@ -339,115 +487,7 @@ var layout = new Ext.Panel({
                 {
                     text: t('Add Task'),
                     handler: function() {
-                        var panelTitle = "Add Task";
-                         
-			var AddTaskForm = Ext.create('Ext.form.Panel', {
-			    renderTo: document.body,
-			    
-			    height: 500,
-			    width: 500,
-			    bodyPadding: 10,
-			    defaultType: 'textfield',
-			    items: [
-				{
-				    xtype     : 'textareafield',
-				    fieldLabel: 'Description',
-				    name: 'description',
-				    grow      : true,
-				    anchor    : '100%',
-				    allowBlank: false
-				},
-				{   
-				    xtype: 'datefield',
-				    fieldLabel: 'Due Date',
-				    name: 'due_date'
-				},
-				{   
-				    xtype: 'combo',
-				    fieldLabel: 'Priority',
-				    name: 'priority',
-				    store: [
-					['High', 'High'],
-					['Normal', 'Normal'],
-					['Low', 'Low']
-				    ],
-				    fields: ['value', 'text'],
-				    queryMode: 'local',
-				    displayField: 'name',
-				    valueField: 'abbr',
-				},
-				{   xtype: 'combo',
-				    fieldLabel: 'Status',
-				    name: 'status',
-				    store: [
-					['Not started', 'Not started'],
-					['In Progress', 'In Progress'],
-					['Completed', 'Completed']
-				    ],
-				    fields: ['value', 'text'],
-				    queryMode: 'local',
-				    displayField: 'name',
-				    valueField: 'abbr',
-				},
-				{
-				    xtype: 'datefield',
-				    fieldLabel: 'Start Date',
-				    name: 'start_date'
-				},
-				{
-				    xtype: 'datefield',
-				    fieldLabel: 'Completion Date',
-				    name: 'completion_date'
-				},
-				{   xtype: 'combo',
-				    fieldLabel: 'Associated Element',
-				    name: 'associated_element',
-				    store: [
-					['Object', 'Object'],
-					['Document', 'Document'],
-					['Asset', 'Asset']
-				    ],
-				    fields: ['value', 'text'],
-				    queryMode: 'local',
-				    displayField: 'name',
-				    valueField: 'abbr'
-				},
-				
-				{   
-				    xtype: 'textfield',
-				    fieldLabel: 'Subject',
-				    name: 'subject'
-				}
-			    ]
-			});
-        
-                        var win = new Ext.Window({
-                            modal:true,
-                            title:panelTitle,
-                            width:500,
-                            height:500,
-                            closeAction :'hide',
-                            plain       : true,
-                            items  : [AddTaskForm],
-                            buttons: [
-                                {   text: 'Save',
-                                    handler : function(btn) {
-                                        var form = AddTaskForm.getForm();
-                                        form.submit({
-                                            method  : 'POST',
-                                            url:'../save_task',
-                                            success : function() {
-                                                Ext.Msg.alert('Thank You', 'Your Task is saved', function() {
-                                                    AddTaskForm.reset();
-                                                    win.close();
-                                                });
-                                            }
-                                        });
-                                    }
-                                }
-                            ]
-                        });
-                        win.show();
+                       AddEditTaskForm('Add',[]);
                     },
                     iconCls: "pimcore_icon_restore",
                     id: "pimcore_button_add",
@@ -458,7 +498,38 @@ var layout = new Ext.Panel({
                     iconCls: "pimcore_icon_delete",
                     id: "pimcore_button_delete",
                     disabled: true
-                }, "-",
+                }, "-",{
+                    text: t('Edit'),
+                    handler: function() {
+                        var id = "121";
+                        /* store = new Ext.data.JsonStore({
+                            url: '../edit_task',
+                        });
+                        store.load(); */
+                        Ext.Ajax.request({
+                            url: '../edit_task',
+                            params: {
+                                "id" : id
+                            },
+                            method: 'GET',  
+                            success: function(response, opts) {
+                                var obj = Ext.decode(response.responseText);
+                                var taskDetail = obj['success'][0];
+                                AddEditTaskForm('Edit',taskDetail);
+                            },
+
+                            failure: function(response, opts) {
+                                console.log('server-side failure with status code ' + response.status);
+                            }
+                        });
+                   
+                        
+                        
+                    }, 
+                    iconCls: "pimcore_icon_delete",
+                    id: "pimcore_button_delete",
+                    disabled: false
+                },
                 {
                     text: t('Archive'),
                     handler: "",//this.onFlush.bind(this),
@@ -475,116 +546,36 @@ var layout = new Ext.Panel({
             ]
         });
 
-      this.selectionColumn = new Ext.selection.CheckboxModel();
+        this.selectionColumn = new Ext.selection.CheckboxModel();
        // this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
-      this.store = new Ext.data.JsonStore({
-        totalProperty: 'total',
-        pageSize: 10,
-        proxy: {
-            url: '../show_task_listing',
-            type: 'ajax',
-            reader: {
-                type: 'json',
-                rootProperty: 'data'
-            }
-        },
-        fields:  [
-                    'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
-                ],
-         baseParams:{
-                showOpt: 1,
-                
-        },
-      listeners: {
-                beforeload: function (store) {
-                    this.store.getProxy().extraParams.limit = this.pagingtoolbar.pageSize;
-                    this.store.getProxy().extraParams.start = 0;
-                }.bind(this)            
-        }
-    });
-       /* var itemsPerPage = pimcore.helpers.grid.getDefaultPageSize();
-       this.store = pimcore.helpers.grid.buildDefaultStore(
-                '/show_task_listing?',
-                [
-                    'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
-                ],
-                itemsPerPage, {
-                    autoLoad: true
-                }
-            );
-            var reader = this.store.getProxy().getReader();
-            reader.setRootProperty('p_results');
-            reader.setTotalProperty('p_totalCount');
-            this.pagingtoolbar = pimcore.helpers.grid.buildDefaultPagingToolbar(this.store);*/
-           this.pagingtoolbar = new Ext.PagingToolbar({
-            pageSize: 10,
-            store: this.store,
-            displayInfo: true,
-            displayMsg: '{0} - {1} /  {2}',
-            emptyMsg: 'No item found'
-    });
 
-      this.pagingtoolbar.add("-");
-
-        this.pagingtoolbar.add(new Ext.Toolbar.TextItem({
-            text: t("items_per_page")
-        }));
-        this.pagingtoolbar.add(new Ext.form.ComboBox({
-            store: [
-                [1, "1"],
-                [2, "2"],
-                [40, "40"],
-                [60, "60"],
-                [80, "80"],
-                [100, "100"]
-            ],
-            queryMode: "local",
-            width: 100,
-            value: 10,
-            triggerAction: "all",
-            listeners: {
-                select: function(box, rec, index) {
-                    this.pagingtoolbar.pageSize = intval(rec.data.field1);
-                    this.store.pageSize = intval(rec.data.field1);
-                    this.pagingtoolbar.moveFirst();
-                }.bind(this)
-            }
-        }));
-            
         this.grid = new Ext.grid.GridPanel({
             frame: false,
             autoScroll: true,
-            store: this.store,
+            //store: this.store,
             columnLines: true,
             bbar: this.pagingtoolbar,
             stripeRows: true,
             selModel: this.selectionColumn,
-           // plugins: ['pimcore.gridfilters'],
+            plugins: ['pimcore.gridfilters'],
             title: t("Task Manager"),
             trackMouseOver:false,
             disableSelection:true,
             region: "center",
             columns: typesColumns,
             tbar: toolbar,
-
- // customize view config
-                 viewConfig: {
-                enableRowBody: true,
-                showPreview: true,
+            listeners: {
+                "rowclick": ""//this.updateButtonStates.bind(this)
             },
-
-//                listeners: {
-//                    rowdblclick : function(grid, record, tr, rowIndex, e, eOpts ) {
-//                        new pimcore.plugin.detailwindow(this.store.getAt(rowIndex).data);
-//                    }.bind(this)
-//                },
+            viewConfig: {
+                forceFit: true
+            }
         });
 
         //this.grid.on("rowcontextmenu", this.onRowContextmenu.bind(this));
-        this.store.load();
+
         return this.grid;
     },
 });
 
 var TaskManagementBundlePlugin = new pimcore.plugin.TaskManagementBundle();
-
