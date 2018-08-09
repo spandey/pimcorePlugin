@@ -602,25 +602,26 @@ if (perspectiveCfg.inToolbar("extras")) {
                     disabled: false
                 }, '-', {
                     text: t('delete_selected'),
-                    handler: function(grid, rowNumber) {
-                        /* Ext.Ajax.request({
-                            var id = [10,12];
-                            url: '../delete_task',
-                            params: {
-                                "id" :id
-                            },
-                            method: 'GET',  
-                            success: function(response, opts) {
-                                 grid.getStore().removeAt(rowNumber);
-                            },
-                            failure: function(response, opts) {
-                                console.log('server-side failure with status code' + response.status);
-                            }
-                        }); */
-                    },
+//                    handler: function(grid, rowNumber) {
+//                        /* Ext.Ajax.request({
+//                            var id = [10,12];
+//                            url: '../delete_task',
+//                            params: {
+//                                "id" :id
+//                            },
+//                            method: 'GET',  
+//                            success: function(response, opts) {
+//                                 grid.getStore().removeAt(rowNumber);
+//                            },
+//                            failure: function(response, opts) {
+//                                console.log('server-side failure with status code' + response.status);
+//                            }
+//                        }); */
+//                    },
                     iconCls: "pimcore_icon_delete",
+                    handler: this.deleteSelected.bind(this),
                     id: "pimcore_button_delete",
-                    disabled: false
+                    disabled: true
                 }, 
                 {
                     text: t('completed'),
@@ -639,7 +640,7 @@ if (perspectiveCfg.inToolbar("extras")) {
         });
 
         this.selectionColumn = new Ext.selection.CheckboxModel();
-        this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
+        this.selectionColumn.on("selectionchange", this.buttonStates.bind(this));
  this.store = new Ext.data.JsonStore({
         autoDestroy: true,
         remoteSort: true,
@@ -722,7 +723,7 @@ if (perspectiveCfg.inToolbar("extras")) {
             columns: typesColumns,
             tbar: toolbar,
 //            listeners: {
-//                "rowclick": ""//this.updateButtonStates.bind(this)
+//               "rowclick": ""//this.updateButtonStates.bind(this)
 //            },
              viewConfig: {
                 enableRowBody: true,
@@ -756,11 +757,10 @@ if (perspectiveCfg.inToolbar("extras")) {
                         
                         
         }, this);
-            
+         //this.grid.on("rowcontextmenu", this.onRowContextmenu.bind(this));   
         return this.grid;
     },
-     updateButtonStates: function() {
-         alert("_---");
+     buttonStates: function() {
         var selectedRows = this.grid.getSelectionModel().getSelection();
 
         if (selectedRows.length >= 1) {
@@ -770,6 +770,11 @@ if (perspectiveCfg.inToolbar("extras")) {
            
             Ext.getCmp("pimcore_button_delete").disable();
         }
+    },
+    deleteSelected: function () {
+        var selectedRows = this.grid.getSelectionModel().getSelection();
+        alert(selectedRows);
+        //this.grid.getStore().remove(selectedRows);
     }
 });
 
