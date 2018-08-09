@@ -23,7 +23,6 @@ use \Pimcore\Model\DataObject;
  */
 class AdminController extends FrontendController
 {
-    
     /**
      * @Route("/task_management__admin_index")
      */
@@ -34,14 +33,14 @@ class AdminController extends FrontendController
      */
     public function SaveTask(Request $request)
     { 
-        $Description =$_POST['description'];
-        $DueDate = date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
-        $Priority =  $_POST['priority'];
-        $Status = $_POST['status']; 
-        $StartDate = date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST['start_date_time']));
-        $CompletionDate =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST['completion_date_time']));
+        $Description       =  $_POST['description'];
+        $DueDate           =  date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
+        $Priority          =  $_POST['priority'];
+        $Status            =  $_POST['status']; 
+        $StartDate         =  date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST['start_date_time']));
+        $CompletionDate    =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST['completion_date_time']));
         $AssociatedElement =  $_POST['associated_element'];
-        $Subject = $_POST['subject'];
+        $Subject           =  $_POST['subject'];
      
         $TaskManagmentObj = new Model\TaskManagement();
         $TaskManagmentObj->setDescription($Description);
@@ -53,11 +52,13 @@ class AdminController extends FrontendController
         $TaskManagmentObj->setAssociated_element($AssociatedElement);
         $TaskManagmentObj->setSubject($Subject);
         $TaskManagmentObj->save();
-        die;
-        
+        $response = \GuzzleHttp\json_encode([
+            'success'=>'Added'
+        ]);
+        return new Response($response);
     }
     
-   /**
+    /**
      * @Route("/show_task_listing")
      */
     public function showAction(Request $request)
@@ -128,14 +129,10 @@ class AdminController extends FrontendController
 
         $totalCount = $TaskListingObj->count();
         $TaskListingData = $TaskListingObj->load(); 
-       
         $response =  \GuzzleHttp\json_encode(["success" => true,
             'data' => $TaskListingData,
             'total' => $totalCount]);
-
         return new Response($response);
-    
-        
     }
        
     /** 
@@ -146,16 +143,15 @@ class AdminController extends FrontendController
      * 
     */
     public function UpdateTask() {
-        $id= $_POST['id'];
-        $Description =$_POST['description'];
-        $DueDate = date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
-        $Priority =  $_POST['priority'];
-        $Status = $_POST['status']; 
-        $StartDate = date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST["due_date_time"]));
-        $CompletionDate =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST["completion_date_time"]));
-        $AssociatedElement =  $_POST['associated_element'];
-        $Subject = $_POST['subject'];
-        
+        $id                = $_POST['id'];
+        $Description       = $_POST['description'];
+        $DueDate           = date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
+        $Priority          = $_POST['priority'];
+        $Status            = $_POST['status']; 
+        $StartDate         = date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST["due_date_time"]));
+        $CompletionDate    = date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST["completion_date_time"]));
+        $AssociatedElement = $_POST['associated_element'];
+        $Subject           = $_POST['subject'];
         
         $TaskManagmentObj = new Model\TaskManagement();
         $TaskManagmentObj->setId($id);
@@ -168,9 +164,11 @@ class AdminController extends FrontendController
         $TaskManagmentObj->setAssociated_element($AssociatedElement);
         $TaskManagmentObj->setSubject($Subject);
         $TaskManagmentObj->save();
-        die;
+        $response = \GuzzleHttp\json_encode([
+            'success'=>'Updated'
+        ]);
+        return new Response($response);
     }
-    
     
     /**
      * Task Detail for specific id
@@ -184,14 +182,10 @@ class AdminController extends FrontendController
         $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
         $TaskListingObj->setCondition("id = ?", $id)->setLimit(1);
         $TaskDetail = $TaskListingObj->load(); 
-        
-        //$TaskDetail
         $response = \GuzzleHttp\json_encode([
             'success'=>$TaskDetail
         ]);
-        
         return new Response($response);
-        die;
     }
     /**
      * @param string|null $date
@@ -207,22 +201,21 @@ class AdminController extends FrontendController
     }
     
     /**
-     * Task Detail for specific id
+     * Delete selected task
      * 
      * @Route("/delete_task")
-     * @return array task detail
+     * @return delete task
      * 
     */
     public function DeleteTask() {
-        echo $id= $_GET['id'];
-        
+        $id= $_GET['id'];
         $TaskManagmentObj = new Model\TaskManagement();
         $TaskManagmentObj->setId($id);
         $TaskManagmentObj->delete();
-        
-        die;
+        $response = \GuzzleHttp\json_encode([
+            'success'=>'Deleted'
+        ]);
+        return new Response($response);
     }
-    
-    
 }
 
