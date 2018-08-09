@@ -667,16 +667,20 @@ this.panel.add(layout);
         });
 
         this.selectionColumn = new Ext.selection.CheckboxModel();
-       // this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
+        this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
  this.store = new Ext.data.JsonStore({
-      totalProperty: 'total',
+        autoDestroy: true,
+        remoteSort: true,
+        autoLoad: true,
         pageSize: 3,
         proxy: {
             url: '../show_task_listing',
             type: 'ajax',
             reader: {
                 type: 'json',
-                rootProperty: 'data'
+                rootProperty: 'data',
+                totalProperty: 'total',
+                successProperty: 'success',
             }
         },
         fields:  [
@@ -741,7 +745,7 @@ this.panel.add(layout);
             plugins: ['pimcore.gridfilters'],
             title: t("Task Manager"),
             trackMouseOver:false,
-            disableSelection:true,
+            //disableSelection:true,
             region: "center",
             columns: typesColumns,
             tbar: toolbar,
@@ -759,6 +763,18 @@ this.panel.add(layout);
          this.store.load();
         return this.grid;
     },
+     updateButtonStates: function() {
+         alert("_---");
+        var selectedRows = this.grid.getSelectionModel().getSelection();
+
+        if (selectedRows.length >= 1) {
+            
+            Ext.getCmp("pimcore_button_delete").enable();
+        } else {
+           
+            Ext.getCmp("pimcore_button_delete").disable();
+        }
+    }
 });
 
 var TaskManagementBundlePlugin = new pimcore.plugin.TaskManagementBundle();
