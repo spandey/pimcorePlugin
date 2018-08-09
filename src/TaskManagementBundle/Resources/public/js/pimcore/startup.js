@@ -109,12 +109,21 @@ if (perspectiveCfg.inToolbar("extras")) {
                 width: 80,
                 xtype: 'timefield'
             });
-
+            this.priorityStore = [
+			['High', 'High'],
+			['Normal', 'Normal'],
+			['Low', 'Low']
+		    ];
+            this.statusStore = [
+			['Not started', 'Not started'],
+			['In Progress', 'In Progress'],
+			['Completed', 'Completed']
+		    ];
             var formSearch = this.find.bind(this);
             this.searchpanel = new Ext.FormPanel({
                 region: "east",
                 title: t("Task Search Form"),
-                width: 350,
+                width: 360,
                 height: 500,
                 border: false,
                 autoScroll: true,
@@ -190,7 +199,7 @@ if (perspectiveCfg.inToolbar("extras")) {
                             typeAhead:true,
                             forceSelection: true,
                             triggerAction: 'all',
-                            store: this.componentStore,
+                            store: this.statusStore,
                             displayField: 'value',
                             valueField: 'key'
                         }]
@@ -212,7 +221,7 @@ var layout = new Ext.Panel({
 this.panel.add(layout);
         var tabPanel = Ext.getCmp("pimcore_panel_tabs");
         tabPanel.add(this.panel);
-       tabPanel.setActiveItem("task_manager_panel");
+       tabPanel.setActiveTab("task_manager_panel");
         
             this.panel.on("destroy", function () {
                 pimcore.globalmanager.remove("task_manager_panel");
@@ -260,7 +269,8 @@ this.panel.add(layout);
 
         var proxy = this.store.getProxy();
         proxy.extraParams = this.searchParams;
-        this.pagingToolbar.moveFirst();
+        this.store.load();
+        //this.pagingToolbar.moveFirst();
     },
     
     getGrid: function () {
@@ -542,20 +552,20 @@ this.panel.add(layout);
                     id: "pimcore_recyclebin_button_flush",
                     disabled: true
                 },
-                '->', {
-                    text: t("filter") + "/" + t("search"),
-                    xtype: "tbtext",
-                    style: "margin: 0 10px 0 0;"
-                },
-                this.filterField
+//                '->', {
+//                    text: t("filter") + "/" + t("search"),
+//                    xtype: "tbtext",
+//                    style: "margin: 0 10px 0 0;"
+//                },
+//                this.filterField
             ]
         });
 
         this.selectionColumn = new Ext.selection.CheckboxModel();
        // this.selectionColumn.on("selectionchange", this.updateButtonStates.bind(this));
  this.store = new Ext.data.JsonStore({
-        totalProperty: 'total',
-        pageSize: 10,
+      totalProperty: 'total',
+        pageSize: 3,
         proxy: {
             url: '../show_task_listing',
             type: 'ajax',
@@ -568,18 +578,19 @@ this.panel.add(layout);
                     'id', 'subject', 'description', 'due_date', 'priority', 'status', 'start_date', 'completion_date', 'associated_element'
                 ],
          baseParams:{
-                showOpt: 1,
+              showOpt: 1,
+                start:0
                 
         },
       listeners: {
                 beforeload: function (store) {
                     this.store.getProxy().extraParams.limit = this.pagingtoolbar.pageSize;
-                    this.store.getProxy().extraParams.start = 0;
+                   
                 }.bind(this)            
         }
     });
     this.pagingtoolbar = new Ext.PagingToolbar({
-            pageSize: 1,
+            pageSize: 3,
             store: this.store,
             displayInfo: true,
             displayMsg: '{0} - {1} /  {2}',
@@ -602,7 +613,7 @@ this.panel.add(layout);
             ],
             queryMode: "local",
             width: 100,
-            value: 10,
+            value: this.pagingtoolbar.pageSize,
             triggerAction: "all",
             listeners: {
                 select: function(box, rec, index) {
@@ -634,6 +645,7 @@ this.panel.add(layout);
                 enableRowBody: true,
                 showPreview: true,
             },
+            
         });
 
         //this.grid.on("rowcontextmenu", this.onRowContextmenu.bind(this));
