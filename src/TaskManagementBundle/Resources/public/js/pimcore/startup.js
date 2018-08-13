@@ -32,8 +32,6 @@ pimcore.plugin.TaskManagementBundle = Class.create(pimcore.plugin.admin, {
         var user = pimcore.globalmanager.get("user");
         if (user.admin == true ) {
             var toolbar = pimcore.globalmanager.get("layout_toolbar");
-            console.log(toolbar);
-            
             var action = new Ext.Action({
                 id: "task_management_menu",
                 text: "Task Management",
