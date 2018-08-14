@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * TaskManagementBundle
+ * 
  * 
  */
 
@@ -13,11 +13,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TaskManagementBundle\Model;
 use \Pimcore\Model\DataObject;
+use Carbon\Carbon;
 
 /* 
  * Task Backend Controller
  * 
- * @method SaveTask(Request $request)
+ * @method saveTask(Request $request)
  * @method indexAction(Request $request)
  * 
  */
@@ -31,31 +32,29 @@ class AdminController extends FrontendController
     /**
      * @Route("/save_task")
      */
-    public function SaveTask(Request $request)
-    { 
-        $Description       =  $_POST['description'];
-        $DueDate           =  date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
-        $Priority          =  $_POST['priority'];
-        $Status            =  $_POST['status']; 
-        $StartDate         =  date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST['start_date_time']));
-        $CompletionDate    =  date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST['completion_date_time']));
-        $AssociatedElement =  $_POST['associated_element'];
-        $Subject           =  $_POST['subject'];
+    public function saveTask(Request $request)
+    {        
+        $description       =  $request->get('description');
+        $dueDate           =  Carbon::createFromFormat('m/d/y g:ia', $request->get('dueDate')." ".$request->get('dueDateTime'));
+        $priority          =  $request->get('priority');
+        $status            =  $request->get('status'); 
+        $startDate         =  Carbon::createFromFormat('m/d/y g:ia', $request->get('startDate')." ".$request->get('startDateTime'));
+        $completionDate    =  Carbon::createFromFormat('m/d/y g:ia', $request->get('completionDate')." ".$request->get('completionDateTime'));
+        $associatedElement =  $request->get('associatedElement');
+        $subject           =  $request->get('subject');
      
-        $TaskManagmentObj = new Model\TaskManagement();
-        $TaskManagmentObj->setDescription($Description);
-        $TaskManagmentObj->setDue_date($DueDate);
-        $TaskManagmentObj->setPriority($Priority);
-        $TaskManagmentObj->setStatus($Status);
-        $TaskManagmentObj->setStart_date($StartDate);
-        $TaskManagmentObj->setCompletion_date($CompletionDate);
-        $TaskManagmentObj->setAssociated_element($AssociatedElement);
-        $TaskManagmentObj->setSubject($Subject);
-        $TaskManagmentObj->save();
-        $response = \GuzzleHttp\json_encode([
-            'success'=>'Added'
-        ]);
-        return new Response($response);
+        $tasksObj = new Model\Tasks();
+        $tasksObj->setDescription($description);
+        $tasksObj->setDueDate($dueDate);
+        $tasksObj->setPriority($priority);
+        $tasksObj->setStatus($status);
+        $tasksObj->setStartDate($startDate);
+        $tasksObj->setCompletionDate($completionDate);
+        $tasksObj->setAssociatedElement($associatedElement);
+        $tasksObj->setSubject($subject);
+        $tasksObj->save();
+    
+        return $this->json(array('success' => 'TaskAdded'));
     }
     
     /**
@@ -65,110 +64,28 @@ class AdminController extends FrontendController
     {
         $start = $request->get('start');
         $limit = $request->get('limit');
+     
+        $taskListingObj = new Model\Tasks\Listing();
+        $taskListingObj->setOffset($start);
+        $taskListingObj->setLimit($limit);
+        $totalCount = $taskListingObj->count();
+        $taskListingData = $taskListingObj->load(); 
         
-        $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        $TaskListingObj->setOffset($start);
-        $TaskListingObj->setLimit($limit);
-       
-        $subject = $request->get('subject');
-        $flag = false;
-        if($subject != ""){
-            $TaskListingObj->setCondition('subject = ?',$subject, 'or');
-            $flag =true;
-        }
-        $fromDate = $request->get('fromDate');
-        $fromTime =  $request->get('fromTime');
-       
+        //p_r($taskListingData);
         
-        if ($fromDate != "" && $fromTime =! "") {
-             $fromDateTime = $this->parseDateTime($fromDate,$fromTime);
-            if ($flag == true){
-                $TaskListingObj->addConditionParam('start_date < ?',$fromDateTime,'AND');
-            }
-            else {
-                $TaskListingObj->setCondition('start_date < ?',$fromDateTime,'AND');
-                $flag =true;
-            }
-//            $qb->andWhere('timestamp > :fromDate');
-//            $qb->setParameter('fromDate', $fromDate, Type::DATETIME);
-        }
-        $toDate = $request->get('toDate');
-        $toTime =  $request->get('toTime');
-        $toDateTime = $this->parseDateTime($toDate,$toTime);
-        if ($toDate != "" && $toTime =! "") {
-            if ($flag == true){
-                $TaskListingObj->addConditionParam('due_date > ?',$toDateTime,'AND');
-            }
-            else {
-                $TaskListingObj->setCondition('due_date > ?',$toDateTime,'AND');
-                $flag =true;
-            }
-
-        }
-        $status = $request->get('status');
-        if($status != ""){
-            if ($flag == true){
-                $TaskListingObj->addConditionParam('status = ?',$status,'OR');
-            }
-            else {
-                $TaskListingObj->setCondition('status = ?',$status,'OR');
-                $flag =true;
-            }
+       /*return $this->json(["success" => true,
+            'data' => $taskListingData,
+            'total' => $totalCount]); */
+        
             
-        }
-        $priority  =  $request->get('priority');
-        if($priority != ""){
-            if ($flag == true){
-                $TaskListingObj->addConditionParam('priority = ?',$priority,'OR');
-            }
-            else {
-                $TaskListingObj->setCondition('priority = ?',$priority,'OR');
-                $flag =true;
-            }
-        }
-
-        $totalCount = $TaskListingObj->count();
-        $TaskListingData = $TaskListingObj->load(); 
-        $response =  \GuzzleHttp\json_encode(["success" => true,
-            'data' => $TaskListingData,
-            'total' => $totalCount]);
-        return new Response($response);
-    }
-       
-    /** 
-     * Update Task Detail for specific id
-     * 
-     * 
-     * @Route("/update_task")
-     * 
-    */
-    public function UpdateTask() {
-        $id                = $_POST['id'];
-        $Description       = $_POST['description'];
-        $DueDate           = date('Y-m-d H:i:s', strtotime($_POST['due_date']." ".$_POST['due_date_time']));
-        $Priority          = $_POST['priority'];
-        $Status            = $_POST['status']; 
-        $StartDate         = date('Y-m-d H:i:s', strtotime($_POST['start_date']." ".$_POST["due_date_time"]));
-        $CompletionDate    = date('Y-m-d H:i:s', strtotime($_POST['completion_date']." ".$_POST["completion_date_time"]));
-        $AssociatedElement = $_POST['associated_element'];
-        $Subject           = $_POST['subject'];
-        
-        $TaskManagmentObj = new Model\TaskManagement();
-        $TaskManagmentObj->setId($id);
-        $TaskManagmentObj->setDescription($Description);
-        $TaskManagmentObj->setDue_date($DueDate);
-        $TaskManagmentObj->setPriority($Priority);
-        $TaskManagmentObj->setStatus($Status);
-        $TaskManagmentObj->setStart_date($StartDate);
-        $TaskManagmentObj->setCompletion_date($CompletionDate);
-        $TaskManagmentObj->setAssociated_element($AssociatedElement);
-        $TaskManagmentObj->setSubject($Subject);
-        $TaskManagmentObj->save();
         $response = \GuzzleHttp\json_encode([
-            'success'=>'Updated'
-        ]);
+            "success" => true,
+            'data' => $taskListingData,
+            'total' => $totalCount]);
+        
         return new Response($response);
     }
+    
     
     /**
      * Task Detail for specific id
@@ -177,45 +94,94 @@ class AdminController extends FrontendController
      * @return array task detail
      * 
     */
-    public function CurrentTaskDetail() {
-        $id= $_GET['id'];
-        $TaskListingObj = new \TaskManagementBundle\Model\TaskManagement\Listing();
-        $TaskListingObj->setCondition("id = ?", $id)->setLimit(1);
-        $TaskDetail = $TaskListingObj->load(); 
+    public function currentTaskDetail(Request $request) {
+        $id = $request->get('id');
+        $taskListingObj = new Model\Tasks\Listing();
+        $taskListingObj->setCondition("id = ?", $id)->setLimit(1);
+        $taskDetail = $taskListingObj->load(); 
+        
+        /*
+        return $this->json([
+            'success'=>$taskDetail
+        ]);*/
+        
         $response = \GuzzleHttp\json_encode([
-            'success'=>$TaskDetail
-        ]);
+            'success'=>$taskDetail]);
+        
         return new Response($response);
     }
-    /**
-     * @param string|null $date
-     * @param string|null $time
-     *
-     * @return \DateTime|null
-     */
-    private function parseDateTime($date = null, $time = null)
-    {
+    
+       
+    /** 
+     * Update Task Detail for specific id
+     * 
+     * 
+     * @Route("/update_task")
+     * 
+    */
+    public function updateTask(Request $request) {
+        $id                =  $request->get('id');
+        $description       =  $request->get('description');
+        $dueDate           =  Carbon::createFromFormat('m/d/y g:ia', $request->get('dueDate')." ".$request->get('dueDateTime'));
+        $priority          =  $request->get('priority');
+        $status            =  $request->get('status'); 
+        $startDate         =  Carbon::createFromFormat('m/d/y g:ia', $request->get('startDate')." ".$request->get('startDateTime'));
+        $completionDate    =  Carbon::createFromFormat('m/d/y g:ia', $request->get('completionDate')." ".$request->get('completionDateTime'));
+        $associatedElement =  $request->get('associatedElement');
+        $subject           =  $request->get('subject');
         
-       $dateTime = date('Y-m-d H:i:s', strtotime($date." ".$time));
-       return $dateTime;
+        $tasksObj = new Model\Tasks();
+        $tasksObj->setId($id);
+        $tasksObj->setDescription($description);
+        $tasksObj->setDueDate($dueDate);
+        $tasksObj->setPriority($priority);
+        $tasksObj->setStatus($status);
+        $tasksObj->setStartDate($startDate);
+        $tasksObj->setCompletionDate($completionDate);
+        $tasksObj->setAssociatedElement($associatedElement);
+        $tasksObj->setSubject($subject);
+        $tasksObj->save();
+    
+        return $this->json(array('success' => 'updated'));
     }
+    
+    
     
     /**
      * Delete selected task
      * 
      * @Route("/delete_task")
-     * @return delete task
      * 
     */
-    public function DeleteTask() {
-        $id= $_GET['id'];
-        $TaskManagmentObj = new Model\TaskManagement();
-        $TaskManagmentObj->setId($id);
-        $TaskManagmentObj->delete();
-        $response = \GuzzleHttp\json_encode([
-            'success'=>'Deleted'
-        ]);
-        return new Response($response);
+    public function deleteTask(Request $request) {
+        $id= json_decode($request->get('id'));
+        
+        $tasksObj = new Model\Tasks();
+        for($i=0; $i<sizeof($id);$i++) {
+            $tasksObj->setId($id[$i]);
+            $tasksObj->delete();
+        }
+        
+        return $this->json(array('success' => 'deleted'));
+    }
+    
+    /**
+     * Change status to completed task
+     * 
+     * @Route("/completed_task")
+     * 
+    */
+    public function completedTask(Request $request) {
+        $id= json_decode($request->get('id'));
+        $TaskManagmentObj = new Model\Tasks();
+        for($i=0; $i<sizeof($id);$i++) {
+            $TaskManagmentObj->setId($id[$i]);
+            $TaskManagmentObj->setStatus('Completed');
+            $TaskManagmentObj->save();
+        }
+       
+        return $this->json(array('success' => 'Status updated to completed'));
+        
     }
 }
 
